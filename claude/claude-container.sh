@@ -42,9 +42,15 @@ podman run -it --rm \
 	-e CLOUD_ML_REGION=$CLOUD_ML_REGION \
 	-e ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID \
 	-e COLORTERM=truecolor \
-	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro,z \
-	-v ${PWD}:/workspace:z \
+	-e CONTAINER_HOST=unix:///run/podman/podman.sock \
+	-e XDG_CONFIG_HOME=/tmp/config \
+	--security-opt label=disable \
+	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
+	-v /run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock \
+	-v ${PWD}:/workspace \
 	-w /workspace \
 	--userns=keep-id \
+	--group-add keep-groups \
 	--user $(id -u):$(id -g) \
-	$IMAGE claude
+	$IMAGE claude \
+	--permission-mode acceptEdits
