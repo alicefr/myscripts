@@ -15,8 +15,19 @@ config () {
 }
 
 usage () {
-	echo "Usage: $(basename $0) [build|config|DIRECTORY]"
+	echo "Usage: $(basename $0) -s SESSION_NAME [-r] [build|config]"
+	echo "  -s SESSION_NAME  session name (required)"
+	echo "  -r               resume an existing session"
 }
+
+while getopts "s:r" opt; do
+	case "$opt" in
+		s) SESSION_NAME="$OPTARG" ;;
+		r) RESUME=1 ;;
+		*) usage; exit 1 ;;
+	esac
+done
+shift $((OPTIND - 1))
 
 case "$1" in
 	"build")
@@ -29,13 +40,26 @@ case "$1" in
 	;;
 esac
 
+if [[ -z "${SESSION_NAME}" ]]; then
+	echo "Error: session name is required (-s SESSION_NAME)"
+	usage
+	exit 1
+fi
 
 if [[ "${PWD}" == "${HOME}" ]]; then
 	echo "You should not use claude on your home directory"
 	usage
 	exit 1
 fi
+CLAUDE_ARGS="--dangerously-skip-permissions"
+if [[ -n "${RESUME}" ]]; then
+	CLAUDE_ARGS="${CLAUDE_ARGS} --resume ${SESSION_NAME}"
+else
+	CLAUDE_ARGS="${CLAUDE_ARGS} --name ${SESSION_NAME}"
+fi
+
 podman run -it --rm \
+   --name "${SESSION_NAME}" \
    --env HOME="${HOME}" \
    --tmpfs "${HOME}" \
 	-e CLAUDE_CODE_USE_VERTEX=$CLAUDE_CODE_USE_VERTEX \
@@ -56,5 +80,4 @@ podman run -it --rm \
 	--user $(id -u):$(id -g) \
 	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
   -e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus \
-	$IMAGE claude \
-	--dangerously-skip-permissions
+	$IMAGE claude ${CLAUDE_ARGS}
