@@ -2,7 +2,7 @@
 
 export CLOUDSDK_CONFIG=~/.config/gcloud.claude
 IMAGE=claude
-
+STORAGE_DIR=$HOME/claude-containers
 
 build () {
 	cd $HOME/src/myscripts/claude/images && podman build -t $IMAGE .
@@ -45,12 +45,16 @@ podman run -it --rm \
 	-e CONTAINER_HOST=unix:///run/podman/podman.sock \
 	-e XDG_CONFIG_HOME=/tmp/config \
 	--security-opt label=disable \
+	-v ~/.claude:${HOME}/.claude \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
 	-v /run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock \
 	-v ${PWD}:/workspace \
 	-w /workspace \
 	--userns=keep-id \
+	--network host \
 	--group-add keep-groups \
 	--user $(id -u):$(id -g) \
+	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
+  -e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus \
 	$IMAGE claude \
-	--permission-mode acceptEdits
+	--dangerously-skip-permissions
