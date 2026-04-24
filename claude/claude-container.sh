@@ -15,9 +15,9 @@ config () {
 }
 
 usage () {
-	echo "Usage: $(basename $0) -s SESSION_NAME [-r] [build|config]"
-	echo "  -s SESSION_NAME  session name (required)"
-	echo "  -r               resume an existing session"
+	echo "Usage: $(basename $0) [-s SESSION_NAME] [-r] [build|config]"
+	echo "  -s SESSION_NAME  start a new named session"
+	echo "  -r               resume (optionally with -s to pick a specific session)"
 }
 
 while getopts "s:r" opt; do
@@ -40,8 +40,8 @@ case "$1" in
 	;;
 esac
 
-if [[ -z "${SESSION_NAME}" ]]; then
-	echo "Error: session name is required (-s SESSION_NAME)"
+if [[ -z "${SESSION_NAME}" && -z "${RESUME}" ]]; then
+	echo "Error: either -s SESSION_NAME or -r is required"
 	usage
 	exit 1
 fi
@@ -51,15 +51,21 @@ if [[ "${PWD}" == "${HOME}" ]]; then
 	usage
 	exit 1
 fi
+
+CONTAINER_NAME="${SESSION_NAME:-claude-resume}"
 CLAUDE_ARGS="--dangerously-skip-permissions"
 if [[ -n "${RESUME}" ]]; then
-	CLAUDE_ARGS="${CLAUDE_ARGS} --resume ${SESSION_NAME}"
+	if [[ -n "${SESSION_NAME}" ]]; then
+		CLAUDE_ARGS="${CLAUDE_ARGS} --resume ${SESSION_NAME}"
+	else
+		CLAUDE_ARGS="${CLAUDE_ARGS} --resume"
+	fi
 else
 	CLAUDE_ARGS="${CLAUDE_ARGS} --name ${SESSION_NAME}"
 fi
 
 podman run -it --rm \
-   --name "${SESSION_NAME}" \
+   --name "${CONTAINER_NAME}" \
    --env HOME="${HOME}" \
    --tmpfs "${HOME}" \
 	-e CLAUDE_CODE_USE_VERTEX=$CLAUDE_CODE_USE_VERTEX \
