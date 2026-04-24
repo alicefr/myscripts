@@ -11,7 +11,10 @@ RUN dnf install -y \
     python3 \
     python3-pip \
     python3-devel \
+	 git \
 	 golang \
+	 libnotify \
+	 jq \
 	 podman \
 	 rust \
 	 cargo \
@@ -19,8 +22,8 @@ RUN dnf install -y \
     && dnf clean all
 
 # Install Claude Code CLI globally
-RUN npm config set ignore-scripts true
-RUN npm install -g @anthropic-ai/claude-code --no-fund --ignore-scripts
+RUN npm config set ignore-scripts false
+RUN npm install -g @anthropic-ai/claude-code --no-fund
 
 
 # Install common Python tools
