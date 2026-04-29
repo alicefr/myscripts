@@ -64,6 +64,11 @@ else
 	CLAUDE_ARGS="${CLAUDE_ARGS} --name ${SESSION_NAME}"
 fi
 
+if ! podman ps --format '{{.Names}}' | grep -q '^podman-remote-cont$'; then
+	echo "Error: podman-remote-cont is not running. Start it with: run-podman.sh"
+	exit 1
+fi
+
 podman run -it --rm \
    --name "${CONTAINER_NAME}" \
    --env HOME="${HOME}" \
@@ -73,17 +78,20 @@ podman run -it --rm \
 	-e ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID \
 	-e COLORTERM=truecolor \
 	-e CONTAINER_HOST=unix:///run/podman/podman.sock \
+	-v podman-socket:/run/podman \
+	--network=container:podman-remote-cont \
 	-e XDG_CONFIG_HOME=/tmp/config \
 	--security-opt label=disable \
 	-v ~/.claude:${HOME}/.claude \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
-	-v /run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock \
 	-v ${PWD}:/workspace \
 	-w /workspace \
 	--userns=keep-id \
-	--network host \
 	--group-add keep-groups \
 	--user $(id -u):$(id -g) \
 	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
   -e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus \
 	$IMAGE claude ${CLAUDE_ARGS}
+	#-v /run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock \
+	# --network host \
+
