@@ -64,34 +64,40 @@ else
 	CLAUDE_ARGS="${CLAUDE_ARGS} --name ${SESSION_NAME}"
 fi
 
-if ! podman ps --format '{{.Names}}' | grep -q '^podman-remote-cont$'; then
-	echo "Error: podman-remote-cont is not running. Start it with: run-podman.sh"
-	exit 1
-fi
+PODMAN_CONF_DIR=$(mktemp -d)
+cat > "${PODMAN_CONF_DIR}/containers.conf" << 'CONF'
+[containers]
+default_sysctls = []
+userns = "host"
+CONF
 
 podman run -it --rm \
-   --name "${CONTAINER_NAME}" \
-   --env HOME="${HOME}" \
-   --tmpfs "${HOME}" \
+	--name "${CONTAINER_NAME}" \
+	--privileged \
+	--env HOME="${HOME}" \
+	--tmpfs "${HOME}" \
+	--tmpfs /run/podman \
+	--device /dev/net/tun:/dev/net/tun \
+	--device /dev/kvm \
+	--device /dev/fuse \
+	--security-opt label=disable \
+	-w /workspace \
 	-e CLAUDE_CODE_USE_VERTEX=$CLAUDE_CODE_USE_VERTEX \
 	-e CLOUD_ML_REGION=$CLOUD_ML_REGION \
 	-e ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID \
 	-e COLORTERM=truecolor \
-	-e CONTAINER_HOST=unix:///run/podman/podman.sock \
-	-v podman-socket:/run/podman \
-	--network=container:podman-remote-cont \
+	-e CONTAINERS_CONF=/tmp/containers-config/containers.conf \
 	-e XDG_CONFIG_HOME=/tmp/config \
-	--security-opt label=disable \
+	-e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus \
 	-v ~/.claude:${HOME}/.claude \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
 	-v ${PWD}:/workspace \
-	-w /workspace \
+	-v podman-var:/var/lib/containers \
+	-v "${PODMAN_CONF_DIR}/containers.conf":/tmp/containers-config/containers.conf:ro \
+	-v "$(dirname "$(readlink -f "$0")")/claude-entrypoint.sh":/usr/local/bin/claude-entrypoint.sh:ro \
+	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
+	--entrypoint /usr/local/bin/claude-entrypoint.sh \
 	--userns=keep-id \
 	--group-add keep-groups \
 	--user $(id -u):$(id -g) \
-	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
-  -e DBUS_SESSION_BUS_ADDRESS=unix:path=/run/user/$(id -u)/bus \
-	$IMAGE claude ${CLAUDE_ARGS}
-	#-v /run/user/$(id -u)/podman/podman.sock:/run/podman/podman.sock \
-	# --network host \
-
+	$IMAGE ${CLAUDE_ARGS}

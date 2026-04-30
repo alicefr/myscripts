@@ -41,11 +41,13 @@ RUN useradd -m -u 1000 -s /bin/bash claude
 RUN mkdir -p /home/claude/.claude/plugins
 COPY ./claude-settings.json /home/claude/.claude/settings.json
 COPY ./known_marketplaces.json /home/claude/.claude/plugins/known_marketplaces.json
+COPY ./storage.conf /etc/containers/storage.conf
 RUN chown -R claude:claude /home/claude/.claude
 
 # Create workspace directory
 RUN mkdir -p /workspace && chown -R claude:claude /workspace
 WORKDIR /workspace
+RUN chmod u+s /usr/bin/newuidmap /usr/bin/newgidmap
 
 # Switch to claude user
 USER claude
