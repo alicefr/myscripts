@@ -1,5 +1,7 @@
 #!/bin/bash
 
+mkdir -p /run/podman
+
 PODMAN_SOCK=/run/podman/podman.sock
 podman --remote=false system service --time=0 "unix://${PODMAN_SOCK}" &
 

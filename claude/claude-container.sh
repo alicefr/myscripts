@@ -92,7 +92,7 @@ podman run -it --rm \
 	-v ~/.claude:${HOME}/.claude \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
 	-v ${PWD}:/workspace \
-	-v podman-var:/var/lib/containers \
+	-v podman-var:${HOME}/.local/share/containers/storage \
 	-v "${PODMAN_CONF_DIR}/containers.conf":/tmp/containers-config/containers.conf:ro \
 	-v "$(dirname "$(readlink -f "$0")")/claude-entrypoint.sh":/usr/local/bin/claude-entrypoint.sh:ro \
 	-v /run/user/$(id -u)/bus:/run/user/$(id -u)/bus:ro \
