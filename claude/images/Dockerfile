@@ -8,10 +8,11 @@ RUN dnf install -y \
 	 nodejs \
 	 npm \
 	 make \
-    python3 \
-    python3-pip \
-    python3-devel \
+         python3 \
+         python3-pip \
+         python3-devel \
 	 git \
+         gh \
 	 golang \
 	 libnotify \
 	 jq \
