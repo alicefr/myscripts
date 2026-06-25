@@ -73,6 +73,7 @@ podman run -it --rm \
    --name "${CONTAINER_NAME}" \
    --env HOME="${HOME}" \
    --tmpfs "${HOME}" \
+	-e GH_TOKEN=$GH_TOKEN_READER \
 	-e CLAUDE_CODE_USE_VERTEX=$CLAUDE_CODE_USE_VERTEX \
 	-e CLOUD_ML_REGION=$CLOUD_ML_REGION \
 	-e ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID \
@@ -84,6 +85,7 @@ podman run -it --rm \
 	--security-opt label=disable \
 	-v ~/.claude:${HOME}/.claude \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
+	-v ~/.agents/skills:${HOME}/.agents/skills \
 	-v ${PWD}:/workspace \
 	-w /workspace \
 	--userns=keep-id \
