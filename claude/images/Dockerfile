@@ -8,15 +8,16 @@ RUN dnf install -y \
 	 nodejs \
 	 npm \
 	 make \
-         python3 \
-         python3-pip \
-         python3-devel \
+	 python3 \
+	 python3-pip \
+	 python3-devel \
 	 git \
-         gh \
+	 gh \
 	 golang \
 	 libnotify \
 	 jq \
 	 podman \
+	 skopeo \
 	 rust \
 	 cargo \
 	 which \
