@@ -34,6 +34,10 @@ RUN pip3 install --no-cache-dir \
     requests \
     pyyaml
 
+# Install rtk (Rust Token Killer) for token-optimized CLI output
+RUN curl -fsSL https://raw.githubusercontent.com/rtk-ai/rtk/refs/heads/master/install.sh | sh \
+    && mv /root/.local/bin/rtk /usr/local/bin/rtk
+
 # Create claude user
 RUN useradd -m -u 1000 -s /bin/bash claude
 
