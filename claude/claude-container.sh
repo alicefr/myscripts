@@ -15,15 +15,17 @@ config () {
 }
 
 usage () {
-	echo "Usage: $(basename $0) [-s SESSION_NAME] [-r] [build|config]"
+	echo "Usage: $(basename $0) [-s SESSION_NAME] [-r] [-m HOST_PATH] [build|config]"
 	echo "  -s SESSION_NAME  start a new named session"
 	echo "  -r               resume (optionally with -s to pick a specific session)"
+	echo "  -m HOST_PATH     mount HOST_PATH into /workspace/<basename of HOST_PATH>"
 }
 
-while getopts "s:r" opt; do
+while getopts "s:rm:" opt; do
 	case "$opt" in
 		s) SESSION_NAME="$OPTARG" ;;
 		r) RESUME=1 ;;
+		m) EXTRA_MOUNT="$OPTARG" ;;
 		*) usage; exit 1 ;;
 	esac
 done
@@ -69,6 +71,14 @@ if ! podman ps --format '{{.Names}}' | grep -q '^podman-remote-cont$'; then
 	exit 1
 fi
 
+EXTRA_MOUNT_ARGS=""
+if [[ -n "${EXTRA_MOUNT}" ]]; then
+	EXTRA_MOUNT_NAME=$(basename "${EXTRA_MOUNT}")
+	ln -sf "/mnt/${EXTRA_MOUNT_NAME}" "${PWD}/${EXTRA_MOUNT_NAME}"
+	trap "rm -f '${PWD}/${EXTRA_MOUNT_NAME}'" EXIT
+	EXTRA_MOUNT_ARGS="-v ${EXTRA_MOUNT}:/mnt/${EXTRA_MOUNT_NAME}"
+fi
+
 podman run -it --rm \
    --name "${CONTAINER_NAME}" \
    --env HOME="${HOME}" \
@@ -87,6 +97,7 @@ podman run -it --rm \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
 	-v ~/.agents/skills:${HOME}/.agents/skills \
 	-v ${PWD}:/workspace \
+	${EXTRA_MOUNT_ARGS} \
 	-w /workspace \
 	--userns=keep-id \
 	--group-add keep-groups \
