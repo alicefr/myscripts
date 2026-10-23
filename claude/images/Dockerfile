@@ -25,7 +25,7 @@ RUN dnf install -y \
 
 # Install Claude Code CLI globally
 RUN npm config set ignore-scripts false
-RUN npm install -g @anthropic-ai/claude-code --no-fund
+RUN npm install -g @anthropic-ai/claude-code@latest --no-fund
 
 
 # Install common Python tools
