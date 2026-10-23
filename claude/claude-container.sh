@@ -83,10 +83,10 @@ podman run -it --rm \
    --name "${CONTAINER_NAME}" \
    --env HOME="${HOME}" \
    --tmpfs "${HOME}" \
+   --env ANTHROPIC_BASE_URL="https://api.enmaas.devshift.net" \
+   --env ANTHROPIC_API_KEY="$ENMAAS_KEY" \
+   --env CLAUDE_CODE_ENABLE_GATEWAY_MODEL_DISCOVERY=1 \
 	-e GH_TOKEN=$GH_TOKEN_READER \
-	-e CLAUDE_CODE_USE_VERTEX=$CLAUDE_CODE_USE_VERTEX \
-	-e CLOUD_ML_REGION=$CLOUD_ML_REGION \
-	-e ANTHROPIC_VERTEX_PROJECT_ID=$ANTHROPIC_VERTEX_PROJECT_ID \
 	-e COLORTERM=truecolor \
 	-e CONTAINER_HOST=unix:///run/podman/podman.sock \
 	-v podman-socket:/run/podman \
