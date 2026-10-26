@@ -78,6 +78,8 @@ fi
 # Persist user config, session data and state on the host, separate from
 # any opencode installed directly on the host
 mkdir -p ~/.config/opencode-enmaas/opencode ~/.local/share/opencode-enmaas ~/.local/state/opencode-enmaas
+# RTK also needs writable config and tracking storage under the tmpfs HOME.
+mkdir -p ~/.config/opencode-enmaas/rtk ~/.local/share/rtk-enmaas
 
 podman run -it --rm \
 	--name "${CONTAINER_NAME}" \
@@ -93,6 +95,8 @@ podman run -it --rm \
 	-v ~/.config/opencode-enmaas/opencode:${HOME}/.config/opencode \
 	-v ~/.local/share/opencode-enmaas:${HOME}/.local/share/opencode \
 	-v ~/.local/state/opencode-enmaas:${HOME}/.local/state/opencode \
+	-v ~/.config/opencode-enmaas/rtk:${HOME}/.config/rtk \
+	-v ~/.local/share/rtk-enmaas:${HOME}/.local/share/rtk \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
 	-v ~/.agents/skills:${HOME}/.agents/skills \
 	-v ~/.agents/skills:${HOME}/.config/opencode/skills:ro \
