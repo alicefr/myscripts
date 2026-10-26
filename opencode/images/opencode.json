@@ -1,0 +1,78 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "enmaas/rits/zai-org/glm-5-3",
+  "update": "disable",
+  "plugins": ["/usr/share/opencode/plugins/rtk"],
+  "providers": {
+    "enmaas": {
+      "name": "EnMaaS",
+      "env": [
+        "ENMAAS_KEY"
+      ],
+      "package": "@opencode/ai/providers/openai-compatible",
+      "settings": {
+        "baseURL": "https://api.enmaas.devshift.net/v1"
+      },
+      "models": {
+        "rits/zai-org/glm-5-3": {
+          "name": "GLM 5.3",
+          "limit": {
+            "context": 1048576,
+            "output": 65536
+          }
+        },
+        "rits/deepseek-ai/DeepSeek-V4.1-Flash-1017": {
+          "name": "DeepSeek V4.1 Flash"
+        }
+      }
+    },
+    "openai": {
+      "env": [
+        "ENMAAS_KEY"
+      ],
+      "settings": {
+        "baseURL": "https://api.enmaas.devshift.net/v1"
+      }
+    },
+    "anthropic": {
+      "env": [
+        "ENMAAS_KEY"
+      ],
+      "settings": {
+        "baseURL": "https://api.enmaas.devshift.net/v1"
+      },
+      "models": {
+        "claude-fable-5-1": {
+          "name": "Claude Fable 5.1 (EnMaaS)",
+          "compatibility": {
+            "supportsThinkingBlockBinding": false
+          }
+        },
+        "claude-opus-5-5": {
+          "name": "Claude Opus 5.5 (EnMaaS)",
+          "compatibility": {
+            "supportsThinkingBlockBinding": false
+          }
+        },
+        "claude-opus-5-5-fast": {
+          "name": "Claude Opus 5.5 Fast (EnMaaS)",
+          "compatibility": {
+            "supportsThinkingBlockBinding": false
+          }
+        },
+        "claude-sonnet-5-5": {
+          "name": "Claude Sonnet 5.5 (EnMaaS)",
+          "compatibility": {
+            "supportsThinkingBlockBinding": false
+          }
+        },
+        "claude-haiku-5-5": {
+          "name": "Claude Haiku 5.5 (EnMaaS)",
+          "compatibility": {
+            "supportsThinkingBlockBinding": false
+          }
+        }
+      }
+    }
+  }
+}
