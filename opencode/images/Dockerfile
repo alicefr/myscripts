@@ -43,6 +43,9 @@ RUN rtk init -g --opencode --hook-only --no-patch --no-trust-filters </dev/null 
     && install -D -m 644 /root/.config/opencode/plugins/rtk.ts \
         /usr/share/opencode/plugins/rtk/index.ts
 
+# Desktop notifications through the host D-Bus socket mounted by the launcher.
+COPY ./plugins/notifications /usr/share/opencode/plugins/notifications
+
 # Container-wide opencode config (EnMaaS providers, updates off). Merged with
 # the user's ~/.config/opencode/opencode.json mounted at runtime.
 COPY ./opencode.json /usr/share/opencode/opencode.json

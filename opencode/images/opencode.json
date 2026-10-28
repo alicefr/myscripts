@@ -2,7 +2,10 @@
   "$schema": "https://opencode.ai/config.json",
   "model": "enmaas/rits/zai-org/glm-5-3",
   "update": "disable",
-  "plugins": ["/usr/share/opencode/plugins/rtk"],
+  "plugins": [
+    "/usr/share/opencode/plugins/rtk",
+    "/usr/share/opencode/plugins/notifications"
+  ],
   "providers": {
     "enmaas": {
       "name": "EnMaaS",
