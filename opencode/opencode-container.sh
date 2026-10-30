@@ -15,8 +15,8 @@ config () {
 
 usage () {
 	echo "Usage: $(basename $0) [-s SESSION_NAME] [-r] [-m HOST_PATH] [build|config]"
-	echo "  -s SESSION_NAME  start a new named session"
-	echo "  -r               resume (optionally with -s to pick a specific session)"
+	echo "  -s SESSION_NAME  open a named session with isolated history and state"
+	echo "  -r               resume (use -s NAME for isolated sessions; otherwise legacy shared history)"
 	echo "  -m HOST_PATH     mount HOST_PATH into /workspace/<basename of HOST_PATH>"
 }
 
@@ -44,6 +44,11 @@ esac
 if [[ -z "${SESSION_NAME}" && -z "${RESUME}" ]]; then
 	echo "Error: either -s SESSION_NAME or -r is required"
 	usage
+	exit 1
+fi
+
+if [[ -n "${SESSION_NAME}" && ! "${SESSION_NAME}" =~ ^[a-zA-Z0-9][a-zA-Z0-9_.-]*$ ]]; then
+	echo "Error: session names must start with a letter or digit and contain only letters, digits, _, . or -"
 	exit 1
 fi
 
@@ -75,9 +80,15 @@ if [[ -n "${EXTRA_MOUNT}" ]]; then
 	EXTRA_MOUNT_ARGS="-v ${EXTRA_MOUNT}:/mnt/${EXTRA_MOUNT_NAME}"
 fi
 
-# Persist user config, session data and state on the host, separate from
-# any opencode installed directly on the host
-mkdir -p ~/.config/opencode-enmaas/opencode ~/.local/share/opencode-enmaas ~/.local/state/opencode-enmaas
+# Named containers have separate databases and TUI state. Keep the original
+# shared directories available through plain -r for existing session history.
+DATA_DIR="$HOME/.local/share/opencode-enmaas"
+STATE_DIR="$HOME/.local/state/opencode-enmaas"
+if [[ -n "${SESSION_NAME}" ]]; then
+	DATA_DIR="$HOME/.local/share/opencode-enmaas-sessions/${SESSION_NAME}"
+	STATE_DIR="$HOME/.local/state/opencode-enmaas-sessions/${SESSION_NAME}"
+fi
+mkdir -p "$HOME/.config/opencode-enmaas/opencode" "$DATA_DIR" "$STATE_DIR" || exit 1
 # RTK also needs writable config and tracking storage under the tmpfs HOME.
 mkdir -p ~/.config/opencode-enmaas/rtk ~/.local/share/rtk-enmaas
 
@@ -93,8 +104,8 @@ podman run -it --rm \
 	--network=container:podman-remote-cont \
 	--security-opt label=disable \
 	-v ~/.config/opencode-enmaas/opencode:${HOME}/.config/opencode \
-	-v ~/.local/share/opencode-enmaas:${HOME}/.local/share/opencode \
-	-v ~/.local/state/opencode-enmaas:${HOME}/.local/state/opencode \
+	-v "${DATA_DIR}:${HOME}/.local/share/opencode" \
+	-v "${STATE_DIR}:${HOME}/.local/state/opencode" \
 	-v ~/.config/opencode-enmaas/rtk:${HOME}/.config/rtk \
 	-v ~/.local/share/rtk-enmaas:${HOME}/.local/share/rtk \
 	-v ~/.config/gcloud.claude:${HOME}/.config/gcloud:ro \
