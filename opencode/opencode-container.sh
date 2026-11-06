@@ -92,6 +92,22 @@ mkdir -p "$HOME/.config/opencode-enmaas/opencode" "$DATA_DIR" "$STATE_DIR" || ex
 # RTK also needs writable config and tracking storage under the tmpfs HOME.
 mkdir -p ~/.config/opencode-enmaas/rtk ~/.local/share/rtk-enmaas
 
+# Expose the host clipboard so TUI copy works (Wayland and/or X11).
+CLIPBOARD_ARGS=""
+if [[ -n "${WAYLAND_DISPLAY}" && -S "${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}" ]]; then
+	CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -e WAYLAND_DISPLAY=${WAYLAND_DISPLAY}"
+	CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -e XDG_RUNTIME_DIR=/run/user/$(id -u)"
+	CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -v ${XDG_RUNTIME_DIR}/${WAYLAND_DISPLAY}:/run/user/$(id -u)/${WAYLAND_DISPLAY}"
+fi
+if [[ -n "${DISPLAY}" && -d /tmp/.X11-unix ]]; then
+	CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -e DISPLAY=${DISPLAY}"
+	CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -v /tmp/.X11-unix:/tmp/.X11-unix:ro"
+	if [[ -n "${XAUTHORITY}" && -f "${XAUTHORITY}" ]]; then
+		CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -e XAUTHORITY=/tmp/.Xauthority"
+		CLIPBOARD_ARGS="${CLIPBOARD_ARGS} -v ${XAUTHORITY}:/tmp/.Xauthority:ro"
+	fi
+fi
+
 podman run -it --rm \
 	--name "${CONTAINER_NAME}" \
 	--env HOME="${HOME}" \
@@ -116,6 +132,7 @@ podman run -it --rm \
 	-v ~/.claude/scripts:${HOME}/.claude/scripts:ro \
 	-v ${PWD}:/workspace \
 	${EXTRA_MOUNT_ARGS} \
+	${CLIPBOARD_ARGS} \
 	-w /workspace \
 	--userns=keep-id \
 	--group-add keep-groups \

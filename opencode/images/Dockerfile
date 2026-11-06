@@ -21,6 +21,8 @@ RUN dnf install -y \
 	 cargo \
 	 which \
 	 ripgrep \
+	 wl-clipboard \
+	 xclip \
     && dnf clean all
 
 # Install opencode CLI globally
